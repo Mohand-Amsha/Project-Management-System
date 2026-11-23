@@ -15,4 +15,16 @@ export const projectService = {
     const { data } = await api.get<ApiResponse<Project>>(`/api/projects/${id}`);
     return data.data;
   },
+  addMembers: async (id: string, userIds: string[]): Promise<Project> => {
+    const { data } = await api.patch<ApiResponse<Project>>(`/api/projects/${id}/members`, {
+      userIds,
+    });
+    return data.data;
+  },
+  removeMember: async (id: string, userId: string): Promise<Project> => {
+    const { data } = await api.delete<ApiResponse<Project>>(
+      `/api/projects/${id}/members/${userId}`
+    );
+    return data.data;
+  },
 };

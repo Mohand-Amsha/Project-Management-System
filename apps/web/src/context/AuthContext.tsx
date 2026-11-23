@@ -9,7 +9,12 @@ import {
   useCallback,
 } from "react";
 import { useRouter } from "next/navigation";
-import { authService, LoginPayload, RegisterPayload } from "@/services/auth.service";
+import {
+  authService,
+  AcceptInvitePayload,
+  LoginPayload,
+  RegisterPayload,
+} from "@/services/auth.service";
 import { tokenStorage } from "@/lib/auth";
 import { User } from "@/types/api";
 import { getApiErrorMessage } from "@/lib/api";
@@ -20,6 +25,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
+  acceptInvite: (payload: AcceptInvitePayload) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -57,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await authService.login(payload);
       tokenStorage.set(result.accessToken, result.refreshToken);
       setUser(result.user);
-      router.push("/dashboard");
+      router.push("/projects");
     },
     [router]
   );
@@ -67,7 +73,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await authService.register(payload);
       tokenStorage.set(result.accessToken, result.refreshToken);
       setUser(result.user);
-      router.push("/dashboard");
+      router.push("/projects");
+    },
+    [router]
+  );
+
+  const acceptInvite = useCallback(
+    async (payload: AcceptInvitePayload) => {
+      const result = await authService.acceptInvite(payload);
+      tokenStorage.set(result.accessToken, result.refreshToken);
+      setUser(result.user);
+      router.push("/projects");
     },
     [router]
   );
@@ -95,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         login,
         register,
+        acceptInvite,
         logout,
         refreshUser,
       }}
