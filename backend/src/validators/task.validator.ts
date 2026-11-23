@@ -17,7 +17,9 @@ export const createTaskSchema = z.object({
 
 export const updateTaskSchema = z.object({
   body: createTaskSchema.shape.body.partial().extend({
-    position: z.number().int().min(0).optional(),
+    // Fractional values are allowed so a card can be dropped between two others
+    // without renumbering the whole column (new tasks also get negative positions).
+    position: z.number().finite().optional(),
   }),
   params: z.object({ id: objectId }),
 });

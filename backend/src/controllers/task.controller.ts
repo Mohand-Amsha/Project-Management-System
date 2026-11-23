@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import * as taskService from "../services/task.service.js";
 import { AppError } from "../utils/AppError.js";
+import type { ListTasksQuery } from "../validators/task.validator.js";
 
 
 type ProjectParams = { projectId: string };
@@ -15,12 +16,7 @@ type CreateBody = {
   dueDate?: string | null;
 };
 type UpdateBody = Partial<CreateBody> & { position?: number };
-type ListQuery = {
-  status?: string;
-  priority?: string;
-  assignee?: string;
-  search?: string;
-};
+type ListQuery = ListTasksQuery;
 
 export const create = async (
   req: Request<ProjectParams, {}, CreateBody>,

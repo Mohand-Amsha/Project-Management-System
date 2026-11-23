@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { User, IUser } from "../models/User.js";
 import { Organization } from "../models/Organization.js";
 import { AppError } from "../utils/AppError.js";
@@ -47,7 +48,7 @@ export const registerUser = async (input: RegisterInput): Promise<AuthResult> =>
   const org = await Organization.create({
     name: input.organizationName,
     slug: uniqueSlug(baseSlug),
-    owner: new (await import("mongoose")).Types.ObjectId(), // placeholder
+    owner: new Types.ObjectId(), // placeholder, replaced with the real user id below
   });
 
   // 2. Create user as admin of that org
