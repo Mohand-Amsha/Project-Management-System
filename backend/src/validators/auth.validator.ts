@@ -19,5 +19,23 @@ export const loginSchema = z.object({
   }),
 });
 
+const inviteToken = z.string().regex(/^[0-9a-f]{64}$/, "Invalid invitation link");
+
+export const inviteInfoSchema = z.object({
+  params: z.object({ token: inviteToken }),
+});
+
+export const acceptInviteSchema = z.object({
+  body: z.object({
+    token: inviteToken,
+    name: z.string().trim().min(2).max(80),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(72, "Password is too long"),
+  }),
+});
+
+export type AcceptInviteInput = z.infer<typeof acceptInviteSchema>["body"];
 export type RegisterInput = z.infer<typeof registerSchema>["body"];
 export type LoginInput = z.infer<typeof loginSchema>["body"];

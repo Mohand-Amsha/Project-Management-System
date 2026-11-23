@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodSchema, ZodError } from "zod";
+import { AppError } from "../utils/AppError.js";
 
 export const validate =
   (schema: ZodSchema) =>
@@ -19,9 +20,8 @@ export const validate =
           .map((e) => `${e.path.join(".")}: ${e.message}`)
           .join(", ");
 
-        const error = new Error(message) as Error & { statusCode: number };
-        error.statusCode = 400;
-        next(error);
+        // AppError so the error handler returns 400 with this message (not a 500)
+        next(new AppError(message, 400));
         return;
       }
       next(err);

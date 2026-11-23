@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import { User, IUser } from "../models/User.js";
 import { Organization } from "../models/Organization.js";
+import { Invite } from "../models/Invite.js";
 import { AppError } from "../utils/AppError.js";
 import { slugify, uniqueSlug } from "../utils/slug.js";
 import {
@@ -8,7 +9,8 @@ import {
   signRefreshToken,
   JwtPayload,
 } from "../utils/jwt.js";
-import { RegisterInput, LoginInput } from "../validators/auth.validator.js";
+import { hashInviteToken } from "../utils/inviteToken.js";
+import { RegisterInput, LoginInput, AcceptInviteInput } from "../validators/auth.validator.js";
 
 interface AuthResult {
   user: Partial<IUser>;
@@ -87,4 +89,50 @@ export const getCurrentUser = async (userId: string) => {
   const user = await User.findById(userId).populate("organization", "name slug plan");
   if (!user) throw new AppError("User not found", 404);
   return sanitizeUser(user);
+};
+// ---------- Invitations ----------
+
+/** Public: what the accept-invite page shows before the person sets a password. */
+export const getInviteInfo = async (token: string) => {
+  const invite = await Invite.findOne({
+    tokenHash: hashInviteToken(token),
+    status: "pending",
+    expiresAt: { $gt: new Date() },
+  }).populate("organization", "name");
+
+  if (!invite) throw new AppError("This invitation is invalid or has expired", 404);
+
+  const organization = invite.organization as unknown as { name: string };
+  return { email: invite.email, role: invite.role, organizationName: organization.name };
+};
+
+export const acceptInvite = async (input: AcceptInviteInput): Promise<AuthResult> => {
+  // Claim the invite atomically so one link can never create two accounts
+  const invite = await Invite.findOneAndUpdate(
+    {
+      tokenHash: hashInviteToken(input.token),
+      status: "pending",
+      expiresAt: { $gt: new Date() },
+    },
+    { status: "accepted", acceptedAt: new Date() }
+  );
+  if (!invite) throw new AppError("This invitation is invalid or has expired", 404);
+
+  try {
+    const user = await User.create({
+      name: input.name,
+      email: invite.email,
+      password: input.password,
+      role: invite.role,
+      organization: invite.organization,
+      isEmailVerified: true, // they proved ownership by opening the emailed link
+    });
+
+    const tokens = buildTokens(user);
+    return { user: sanitizeUser(user), ...tokens };
+  } catch (err) {
+    // Account creation failed (e.g. the email was registered meanwhile): free the invite again
+    await Invite.updateOne({ _id: invite._id }, { status: "pending", $unset: { acceptedAt: 1 } });
+    throw err;
+  }
 };

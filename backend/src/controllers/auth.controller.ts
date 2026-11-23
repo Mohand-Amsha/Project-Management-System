@@ -28,6 +28,32 @@ export const login = async (
   }
 };
 
+export const inviteInfo = async (
+  req: Request<{ token: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const info = await authService.getInviteInfo(req.params.token);
+    res.status(200).json({ success: true, data: info });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const acceptInvite = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const result = await authService.acceptInvite(req.body);
+    res.status(201).json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const me = async (
   req: Request,
   res: Response,

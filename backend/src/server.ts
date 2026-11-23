@@ -9,6 +9,7 @@ import { User, Organization } from "./models/index.js";
 import authRoutes from "./routes/auth.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import { projectTaskRoutes, taskRoutes } from "./routes/task.routes.js";
+import memberRoutes from "./routes/member.routes.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -32,6 +33,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/members", memberRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/projects/:projectId/tasks", projectTaskRoutes);
