@@ -62,10 +62,8 @@ export function CreateTaskDialog({ projectId }: { projectId: string }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> New Task
-        </Button>
+      <DialogTrigger render={<Button />}>
+        <Plus className="mr-2 h-4 w-4" /> New Task
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
